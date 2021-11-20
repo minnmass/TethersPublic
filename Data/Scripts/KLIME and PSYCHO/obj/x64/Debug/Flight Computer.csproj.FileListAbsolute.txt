@@ -1,0 +1,4 @@
+C:\Users\theimmersion\Desktop\source\repos\Space Engineers Flight Computer\obj\x64\Debug\Flight Computer.csprojAssemblyReference.cache
+C:\Users\theimmersion\Desktop\source\repos\Space Engineers Flight Computer\obj\x64\Debug\Flight Computer.csproj.CoreCompileInputs.cache
+C:\Users\theimmersion\AppData\Roaming\SpaceEngineers\Mods\Flight Computer\Data\Scripts\PSYCHO\Flight_Computer\obj\x64\Debug\Flight Computer.csprojAssemblyReference.cache
+C:\Users\theimmersion\AppData\Roaming\SpaceEngineers\Mods\Flight Computer\Data\Scripts\PSYCHO\Flight_Computer\obj\x64\Debug\Flight Computer.csproj.CoreCompileInputs.cache
