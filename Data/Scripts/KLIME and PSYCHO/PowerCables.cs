@@ -79,8 +79,6 @@ namespace KlimeAndPsycho.PowerCables
         int STATE = 0;
         Lib.raycast_data hitblock;
 
-        ushort tick = 0;
-
         // GLOBALS
         public IMyTerminalBlock SourceBlock;
         public static Dictionary<long, IMyTerminalBlock> InteractedSourceBlock = new Dictionary<long, IMyTerminalBlock>(); // Block we're pulling the cable from.
@@ -127,9 +125,6 @@ namespace KlimeAndPsycho.PowerCables
 
         GridLinkTypeEnum LinkType = GridLinkTypeEnum.Logical;
         GridLinkTypeEnum LinkTypeTwo = GridLinkTypeEnum.Logical; // OTHER TYPES DON'T WORK SO IT'S SET TO ONE THAT DOESN'T WREAK HAVOC.
-
-        long PlayerCount = 0;
-        List<IMyPlayer> PlayerList = new List<IMyPlayer>();
 
         // OTHER
 
@@ -265,7 +260,7 @@ namespace KlimeAndPsycho.PowerCables
                 {
                     if (block.IsInSameLogicalGroupAs(ConnectedBlock))
                     {
-                        if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                        if (BlockAndConnectedBlockAreBothHoseAttachments())
                         {
                             MyCubeGrid.BreakGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                             MyCubeGrid.BreakGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -367,7 +362,7 @@ namespace KlimeAndPsycho.PowerCables
                     if (!block.IsInSameLogicalGroupAs(ConnectedBlock))
                     {
                         // Check if it's a conveyor block for conevyor connection, otherwise make it a logical connection. (CONV. CONN. DOESN'T WORK SO IT'S LOCIGAL TO AVOID ISSUES)
-                        if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                        if (BlockAndConnectedBlockAreBothHoseAttachments())
                         {
                             MyCubeGrid.CreateGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                             MyCubeGrid.CreateGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -383,14 +378,6 @@ namespace KlimeAndPsycho.PowerCables
                 {
                     ConnectedBlockId = -1;
                 }
-
-                PlayerCount = MyAPIGateway.Players.Count;
-                if (PlayerCount > 0)
-                    MyAPIGateway.Players.GetPlayers(PlayerList);
-
-                //IMyTerminalBlock someBlock = block.CubeGrid.
-                //public IMyTerminalBlock AttachPointStartBlock;          // Stores the first interacted block.
-                //public long AttachPointStartBlockId;
             }
             catch (Exception e)
             {
@@ -571,7 +558,7 @@ namespace KlimeAndPsycho.PowerCables
                             if (ConnectedBlock != null)
                             {
                                 //MyCubeGrid.BreakGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                                if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                                if (BlockAndConnectedBlockAreBothHoseAttachments())
                                 {
                                     MyCubeGrid.BreakGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                                     MyCubeGrid.BreakGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -744,7 +731,7 @@ namespace KlimeAndPsycho.PowerCables
                                                 if (ConnectedBlock != null && block.IsInSameLogicalGroupAs(ConnectedBlock))
                                                 {
                                                     //MyCubeGrid.BreakGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                                                    if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                                                    if (BlockAndConnectedBlockAreBothHoseAttachments())
                                                     {
                                                         MyCubeGrid.BreakGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                                                         MyCubeGrid.BreakGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -761,7 +748,7 @@ namespace KlimeAndPsycho.PowerCables
                                                 ConnectedBlock = endBlock;
 
                                                 //MyCubeGrid.CreateGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                                                if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                                                if (BlockAndConnectedBlockAreBothHoseAttachments())
                                                 {
                                                     MyCubeGrid.CreateGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                                                     MyCubeGrid.CreateGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -796,7 +783,7 @@ namespace KlimeAndPsycho.PowerCables
                                         if (ConnectedBlock != null && block.IsInSameLogicalGroupAs(ConnectedBlock))
                                         {
                                             //MyCubeGrid.BreakGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                                            if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                                            if (BlockAndConnectedBlockAreBothHoseAttachments())
                                             {
                                                 MyCubeGrid.BreakGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                                                 MyCubeGrid.CreateGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
@@ -899,16 +886,12 @@ namespace KlimeAndPsycho.PowerCables
                     // Break connection if any of the blocks isn't functional, deleted or too far out.
                     // The connection could remain even when block isn't functional but since the cable would
                     // most certainly be floating somewhere where seemingly no physical attachment would be possible on the construction models.
-                    if (breakConnection || !ConnectedBlock.IsFunctional || ConnectedBlock.MarkedForClose || ConnectedBlock.Closed || !block.IsFunctional || block.MarkedForClose || block.Closed)
-                    {
+                    if (breakConnection || !ConnectedBlock.IsFunctional || ConnectedBlock.MarkedForClose || ConnectedBlock.Closed || !block.IsFunctional || block.MarkedForClose || block.Closed) {
                         //MyCubeGrid.BreakGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                        if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
-                        {
+                        if (BlockAndConnectedBlockAreBothHoseAttachments()) {
                             MyCubeGrid.BreakGridGroupLink(LinkTypeTwo, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                             MyCubeGrid.BreakGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
-                        }
-                        else
-                        {
+                        } else {
                             MyCubeGrid.BreakGridGroupLink(LinkType, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                             MyCubeGrid.BreakGridGroupLink(GridLinkTypeEnum.Electrical, block.EntityId, (MyCubeGrid)block.CubeGrid, (MyCubeGrid)ConnectedBlock.CubeGrid);
                         }
@@ -916,56 +899,34 @@ namespace KlimeAndPsycho.PowerCables
                         return;
                     }
 
-                    // Player count check for player distance.
-                    if (PlayerCount != MyAPIGateway.Players.Count)
-                    {
-                        PlayerCount = MyAPIGateway.Players.Count;
-                        if (PlayerCount > 0)
-                        {
-                            PlayerList.Clear();
-                            MyAPIGateway.Players.GetPlayers(PlayerList);
-                        }
-                    }
-
                     // Player distance check.
                     // Check if any players are nearby, otherwise don't draw cables, save some PC performance.
                     // Should expand this a bit further.
-                    bool playerClose = true;
-                    if (PlayerCount > 0)
-                    {
-                        double closestPlayerDistance = Lib.GetClosestPlayer(PlayerList, block.WorldMatrix.Translation);
-                        if (closestPlayerDistance > 3000)
-                            playerClose = false;
-                    }
-                    else
-                    {
-                        playerClose = false;
-                    }
+                    bool playerClose = MyAPIGateway.Players.Count > 0 && Lib.PlayersWithinDistanceFromPoint(3000, block.WorldMatrix.Translation);
 
-                    if (!MyAPIGateway.Utilities.IsDedicated && playerClose)
+                    if (!IsDedicated && playerClose)
                     {
                         var drawCable = cable_vis;
                         var drawCableThickness = line_thickness;
 
-                        if (block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment")
+                        if (BlockAndConnectedBlockAreBothHoseAttachments())
                         {
                             drawCable = cable_hose;
                             drawCableThickness = 0.15f;
                         }
 
-                        MySimpleObjectDraw.DrawLine(startAttach, endAttach,
-                            drawCable, ref col, drawCableThickness, BlendTypeEnum.PostPP);
+                        MySimpleObjectDraw.DrawLine(startAttach, endAttach, drawCable, ref col, drawCableThickness, BlendTypeEnum.PostPP);
                     }
                 }
-
-                tick++;
-                if (tick > ushort.MaxValue)
-                    tick = 0;
             }
             catch (Exception e)
             {
                 Log.Error(e);
             }
+        }
+
+        private bool BlockAndConnectedBlockAreBothHoseAttachments() {
+            return block.BlockDefinition.SubtypeId == "ConveyorHoseAttachment" && ConnectedBlock.BlockDefinition.SubtypeId == "ConveyorHoseAttachment";
         }
 
         // ===============

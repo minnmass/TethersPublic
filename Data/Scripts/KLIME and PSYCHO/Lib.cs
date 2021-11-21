@@ -45,36 +45,22 @@ namespace KlimeAndPsycho
 {
     class Lib
     {
-        public double GetClosestPlayer(List<IMyPlayer> PlayerList, Vector3D location)
+        public bool PlayersWithinDistanceFromPoint(double distance, Vector3D location)
         {
-            PlayerList.Clear();
+            int playerCount = (int)MyAPIGateway.Players.Count;
+            if (playerCount == 0)
+                return false;
+
+            List<IMyPlayer> PlayerList = new List<IMyPlayer>(playerCount);
             MyAPIGateway.Players.GetPlayers(PlayerList);
 
-            double closestDistance = double.PositiveInfinity;
-
-            foreach (IMyPlayer player in PlayerList)
-            {
-
-                if (player?.Character == null)
-                    continue;
-                double distance = Vector3D.DistanceSquared(player.Character.WorldMatrix.Translation, location);
-
-                if (distance < closestDistance * closestDistance)
-                {
-                    closestDistance = distance;
-                }
-            }
-
-            if (closestDistance == double.PositiveInfinity)
-                return -1;
-
-            return Math.Sqrt(closestDistance);
+            double distanceSquared = distance * distance;
+            return PlayerList
+                .Any(p => p.Character != null && Vector3D.DistanceSquared(p.Character.WorldMatrix.Translation, location) <= distanceSquared);
         }
 
         public Vector3D GetDummyRelativeLocation(IMyTerminalBlock block)
         {
-            Vector3D DummyAttachPoint = Vector3D.Zero;
-
             IDictionary<string, IMyModelDummy> ModelDummy = new Dictionary<string, IMyModelDummy>();
             var DummyCount = block.Model.GetDummies(ModelDummy);
 
@@ -84,14 +70,12 @@ namespace KlimeAndPsycho
                 if (ModelDummy.ContainsKey("cable_attach_point_1"))
                 {
                     Vector3D DummyLoc = ModelDummy["cable_attach_point_1"].Matrix.Translation;
-                    Vector3D worldPosition = Vector3D.Transform(DummyLoc, block.WorldMatrix);
-                    DummyAttachPoint = DummyLoc;
+                    return DummyLoc;
                 }
                 else if (ModelDummy.ContainsKey("cable_attach_point"))
                 {
                     Vector3D DummyLoc = ModelDummy["cable_attach_point"].Matrix.Translation;
-                    Vector3D worldPosition = Vector3D.Transform(DummyLoc, block.WorldMatrix);
-                    DummyAttachPoint = DummyLoc;
+                    return DummyLoc;
                 }
             }
             else
@@ -99,40 +83,32 @@ namespace KlimeAndPsycho
                 if (ModelDummy.ContainsKey("cable_attach_point"))
                 {
                     Vector3D DummyLoc = ModelDummy["cable_attach_point"].Matrix.Translation;
-                    Vector3D worldPosition = Vector3D.Transform(DummyLoc, block.WorldMatrix);
-                    DummyAttachPoint = DummyLoc;
+                    return DummyLoc;
                 }
             }
 
-            return DummyAttachPoint;
+            return Vector3D.Zero;
         }
 
         public Vector3D GetDummyRelativeLocation(IMyTerminalBlock endBlock, raycast_data hitblock)
         {
-            Vector3D DummyAttachEndPoint = Vector3D.Zero;
-
             IDictionary<string, IMyModelDummy> ModelDummy = new Dictionary<string, IMyModelDummy>();
-            var DummyCount = endBlock.Model.GetDummies(ModelDummy);
-
             if (ModelDummy.ContainsKey("cable_attach_point"))
             {
                 Vector3D DummyLoc = ModelDummy["cable_attach_point"].Matrix.Translation;
-                DummyAttachEndPoint = DummyLoc;
+                return DummyLoc;
             }
             else if (ModelDummy.ContainsKey("cable_attach_point_1"))
             {
                 Vector3D DummyLoc = ModelDummy["cable_attach_point_1"].Matrix.Translation;
-                DummyAttachEndPoint = DummyLoc;
+                return DummyLoc;
             }
             else
             {
                 Vector3D worldDirection = hitblock.hit_location - endBlock.WorldMatrix.Translation;
                 Vector3D bodyPosition = Vector3D.TransformNormal(worldDirection, MatrixD.Transpose(endBlock.WorldMatrix));
-
-                DummyAttachEndPoint = bodyPosition;
+                return bodyPosition;
             }
-
-            return DummyAttachEndPoint;
         }
 
 
@@ -159,10 +135,7 @@ namespace KlimeAndPsycho
         /// <returns></returns>
         public bool IsBlockValid(IMyTerminalBlock block)
         {
-            //if (!block.IsFunctional || block.CubeGrid.Physics == null || !block.IsWorking || block.MarkedForClose || block.Closed)
-            if (block.CubeGrid.Physics == null || block.MarkedForClose || block.Closed)
-                return false;
-            return true;
+            return block.CubeGrid.Physics != null && !block.MarkedForClose && !block.Closed;
         }
 
 

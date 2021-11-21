@@ -21,7 +21,7 @@ namespace KlimeAndPsycho
     {
         private static Log instance;
         private static Handler handler;
-        private static bool unloaded = false;
+        private static volatile bool unloaded = false;
 
         public const string FILE = "info.log";
         private const int DEFAULT_TIME_INFO = 3000;
@@ -51,7 +51,7 @@ namespace KlimeAndPsycho
         {
             instance = null;
 
-            if (handler != null && handler.AutoClose)
+            if (!unloaded && handler != null && handler.AutoClose)
             {
                 Unload();
             }
@@ -75,13 +75,20 @@ namespace KlimeAndPsycho
             }
         }
 
+        private static object HandlerCreationLockObject = new object();
         private static void EnsureHandlerCreated()
         {
             if (unloaded)
                 throw new Exception("Digi.Log accessed after it was unloaded!");
 
             if (handler == null)
-                handler = new Handler();
+            {
+                lock(HandlerCreationLockObject)
+                {
+                    if(handler == null)
+                        handler = new Handler();
+                }
+            }
         }
         #endregion
 
@@ -174,8 +181,7 @@ namespace KlimeAndPsycho
         /// <param name="printTimeMs">How long to show the HUD notification for, in miliseconds.</param>
         public static void Error(Exception exception, string printText = PRINT_ERROR, int printTimeMs = DEFAULT_TIME_ERROR)
         {
-            EnsureHandlerCreated();
-            handler.Error(exception.ToString(), printText, printTimeMs);
+            Error(exception.ToString(), printText, printTimeMs);
         }
 
         /// <summary>
@@ -213,7 +219,7 @@ namespace KlimeAndPsycho
         {
             EnsureHandlerCreated();
 
-            if (task.Exceptions != null && task.Exceptions.Length > 0)
+            if (task.Exceptions != null)
             {
                 foreach (var e in task.Exceptions)
                 {
@@ -238,8 +244,6 @@ namespace KlimeAndPsycho
 
             private IMyHudNotification notifyInfo;
             private IMyHudNotification notifyError;
-
-            private StringBuilder sb = new StringBuilder(64);
 
             private List<string> preInitMessages;
 
@@ -303,7 +307,7 @@ namespace KlimeAndPsycho
                 #endregion
 
                 #region Init message
-                sb.Clear();
+                StringBuilder sb = new StringBuilder(64);
                 sb.Append("Initialized");
                 sb.Append("\nGameMode=").Append(MyAPIGateway.Session.SessionSettings.GameMode);
                 sb.Append("\nOnlineMode=").Append(MyAPIGateway.Session.SessionSettings.OnlineMode);
@@ -336,7 +340,6 @@ namespace KlimeAndPsycho
 #endif
 
                 Info(sb.ToString());
-                sb.Clear();
                 #endregion
             }
 
@@ -359,13 +362,13 @@ namespace KlimeAndPsycho
 
             public void IncreaseIndent()
             {
-                indent++;
+                ++indent;
             }
 
             public void DecreaseIndent()
             {
                 if (indent > 0)
-                    indent--;
+                    --indent;
             }
 
             public void ResetIndent()
@@ -430,13 +433,13 @@ namespace KlimeAndPsycho
             {
                 try
                 {
-                    sb.Clear();
+                    StringBuilder sb = new StringBuilder(64);
                     sb.Append(DateTime.Now.ToString("[HH:mm:ss] "));
 
                     if (writer == null)
                         sb.Append("(PRE-INIT) ");
 
-                    for (int i = 0; i < indent; i++)
+                    for (int i = 0; i < indent; ++i)
                         sb.Append(' ', 4);
 
                     if (prefix != null)
@@ -456,8 +459,6 @@ namespace KlimeAndPsycho
                         writer.WriteLine(sb);
                         writer.Flush();
                     }
-
-                    sb.Clear();
                 }
                 catch (Exception e)
                 {

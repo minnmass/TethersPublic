@@ -79,8 +79,6 @@ namespace KlimeAndPsycho.PowerCables.Sync
             MyAPIGateway.Multiplayer.SendMessageTo(PacketId, bytes, steamId);
         }
 
-        private List<IMyPlayer> tempPlayers;
-
         /// <summary>
         /// Sends packet (or supplied bytes) to all players except server player and supplied packet's sender.
         /// Only works server side.
@@ -90,10 +88,7 @@ namespace KlimeAndPsycho.PowerCables.Sync
             if (!MyAPIGateway.Multiplayer.IsServer)
                 return;
 
-            if (tempPlayers == null)
-                tempPlayers = new List<IMyPlayer>(MyAPIGateway.Session.SessionSettings.MaxPlayers);
-            else
-                tempPlayers.Clear();
+            var tempPlayers = new List<IMyPlayer>(MyAPIGateway.Session.SessionSettings.MaxPlayers);
 
             MyAPIGateway.Players.GetPlayers(tempPlayers);
 
